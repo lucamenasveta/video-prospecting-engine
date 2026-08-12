@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Prospecting Engine</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0b0d10; color: #e7e9ee;
+         font: 15px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color: #4aa3df; }
+  header { padding: 28px 32px 8px; }
+  header h1 { margin: 0; font-size: 26px; }
+  header p { margin: 6px 0 0; color: #8a8f98; }
+  .wrap { padding: 16px 32px 64px; display: grid; gap: 24px;
+          grid-template-columns: 380px 1fr; align-items: start; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+
+  .panel { background: #14171c; border: 1px solid #23272e; border-radius: 14px;
+           padding: 20px; }
+  .panel h2 { margin: 0 0 14px; font-size: 15px; text-transform: uppercase;
+              letter-spacing: .06em; color: #8a8f98; }
+  label { display: block; font-size: 13px; color: #b7bcc6; margin: 12px 0 4px; }
+  input, select, textarea {
+    width: 100%; background: #0e1116; color: #e7e9ee; border: 1px solid #2a2f37;
+    border-radius: 8px; padding: 8px 10px; font: inherit; }
+  input:focus, select:focus { outline: none; border-color: #4aa3df; }
+  .hint { font-size: 12px; color: #6f757e; margin: 4px 0 0; }
+
+  .rows { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .row { display: grid; gap: 6px; grid-template-columns: 1fr 1fr auto;
+         background: #0e1116; border: 1px solid #23272e; border-radius: 10px;
+         padding: 8px; }
+  .row input { border: 1px solid #23272e; }
+  .row .del { grid-column: 3; grid-row: 1 / span 3; background: transparent;
+              border: none; color: #8a8f98; font-size: 20px; cursor: pointer; }
+  .row .del:hover { color: #e4572e; }
+
+  button { cursor: pointer; }
+  .btn { background: #4aa3df; color: #06121c; border: none; border-radius: 9px;
+         padding: 10px 16px; font-weight: 700; font-size: 15px; }
+  .btn:disabled { opacity: .6; cursor: default; }
+  .btn-ghost { background: transparent; border: 1px solid #2a2f37; color: #cdd2da;
+               border-radius: 8px; padding: 7px 12px; font-size: 13px; }
+  .btn-ghost:hover { border-color: #4aa3df; color: #fff; }
+  .actions { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+
+  #status { color: #8a8f98; font-size: 14px; min-height: 20px; margin: 4px 0 16px; }
+  .grid { display: grid; gap: 20px;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  .card { background: #14171c; border: 1px solid #23272e; border-radius: 14px;
+          overflow: hidden; }
+  .card.failed { border-color: #6b2b23; }
+  .card img { width: 100%; display: block; aspect-ratio: 16/9; }
+  .card .body { padding: 16px 18px 20px; }
+  .card h3 { margin: 0 0 8px; font-size: 18px; }
+  .card h3 span { color: #8a8f98; font-weight: 400; }
+  .kv { font-size: 13px; margin: 5px 0; }
+  .kv strong { color: #fff; }
+  .script { margin: 12px 0 0; font-size: 13px; color: #c3c8d0;
+            border-left: 3px solid #2e86ab; padding-left: 12px; }
+  .cardbtns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .fail { color: #e4894f; font-size: 13px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Video Prospecting Engine</h1>
+    <p>Turn a prospect list into ready-to-record video scripts, subjects, and branded thumbnails.</p>
+  </header>
+
+  <div class="wrap">
+    <!-- ------- config + prospects ------- -->
+    <form class="panel" id="form" onsubmit="return false">
+      <h2>Setup</h2>
+
+      <label>Your brand (on thumbnails)</label>
+      <input id="brand" value="Luca Menasveta">
+
+      <label>Provider</label>
+      <select id="provider">
+        <option value="mock">Mock — offline demo (placeholder signals)</option>
+        <option value="anthropic">Anthropic — real, web-sourced signals</option>
+      </select>
+
+      <div id="anthropicOpts" style="display:none">
+        <label>Claude API key</label>
+        <input id="apiKey" type="password" placeholder="sk-ant-…" autocomplete="off">
+        <p class="hint">Used only for this request — never stored or logged. Get one at console.anthropic.com.</p>
+        <label>Model</label>
+        <input id="model" value="claude-opus-5">
+      </div>
+
+      <h2 style="margin-top:22px">Prospects</h2>
+      <div class="rows" id="rows"></div>
+      <div class="actions">
+        <button class="btn-ghost" id="addRow" type="button">+ Add prospect</button>
+        <button class="btn-ghost" id="loadSample" type="button">Load sample</button>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="generate" type="button">Generate assets</button>
+      </div>
+    </form>
+
+    <!-- ------- results ------- -->
+    <section>
+      <div id="status">Add prospects and click <strong>Generate assets</strong>.</div>
+      <div class="actions" id="resultActions" style="display:none; margin-bottom:16px">
+        <a class="btn-ghost" id="downloadBundle" href="/download/bundle.zip">⬇ Download all (.zip)</a>
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+  </div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const rowsEl = $("#rows");
+
+const FIELDS = [
+  ["first_name", "First name"], ["company", "Company"], ["role", "Role"],
+  ["industry", "Industry"], ["website", "Website"],
+];
+
+function addRow(data = {}) {
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = FIELDS.map(([k, label]) =>
+    `<input data-k="${k}" placeholder="${label}" value="${(data[k] || "").replace(/"/g, "&quot;")}">`
+  ).join("") + `<button class="del" title="Remove" type="button">×</button>`;
+  row.querySelector(".del").onclick = () => row.remove();
+  rowsEl.appendChild(row);
+}
+
+function collectRows() {
+  return [...rowsEl.querySelectorAll(".row")].map((row) => {
+    const o = {};
+    row.querySelectorAll("input").forEach((i) => (o[i.dataset.k] = i.value.trim()));
+    return o;
+  });
+}
+
+$("#provider").onchange = (e) => {
+  $("#anthropicOpts").style.display = e.target.value === "anthropic" ? "block" : "none";
+};
+$("#addRow").onclick = () => addRow();
+$("#loadSample").onclick = () => {
+  rowsEl.innerHTML = "";
+  [
+    { first_name: "Priya", company: "Ramp", role: "VP Sales", industry: "fintech", website: "ramp.com" },
+    { first_name: "Marcus", company: "Notion", role: "Head of Growth", industry: "productivity software", website: "notion.so" },
+  ].forEach(addRow);
+};
+
+function copyBtn(label, text) {
+  const b = document.createElement("button");
+  b.className = "btn-ghost";
+  b.textContent = label;
+  b.onclick = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      const old = b.textContent; b.textContent = "Copied ✓";
+      setTimeout(() => (b.textContent = old), 1200);
+    });
+  };
+  return b;
+}
+
+function render(data) {
+  const grid = $("#grid");
+  grid.innerHTML = "";
+  (data.assets || []).forEach((a) => {
+    const card = document.createElement("article");
+    card.className = "card" + (a.status === "failed" ? " failed" : "");
+    if (a.status === "failed") {
+      card.innerHTML = `<div class="body"><h3>${a.company} <span>· ${a.first_name || ""}</span></h3>
+        <p class="fail">Failed: ${a.error || "unknown error"}</p></div>`;
+      grid.appendChild(card);
+      return;
+    }
+    const beats = a.stages || {};
+    const body = document.createElement("div");
+    body.className = "body";
+    body.innerHTML = `
+      <h3>${a.company} <span>· ${a.first_name}${a.role ? " · " + a.role : ""}</span></h3>
+      <p class="kv"><strong>Signal:</strong> ${a.signal}</p>
+      <p class="kv"><strong>Subject:</strong> ${a.subject}</p>
+      <p class="script">${a.spoken}</p>`;
+    const btns = document.createElement("div");
+    btns.className = "cardbtns";
+    btns.append(
+      copyBtn("Copy script", a.spoken),
+      copyBtn("Copy subject", a.subject),
+    );
+    const dl = document.createElement("a");
+    dl.className = "btn-ghost";
+    dl.textContent = "⬇ Thumbnail";
+    dl.href = a.thumbnail;
+    dl.download = a.company.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".png";
+    btns.append(dl);
+    body.append(btns);
+
+    const img = document.createElement("img");
+    img.src = a.thumbnail;
+    img.alt = "Thumbnail for " + a.company;
+    card.append(img, body);
+    grid.appendChild(card);
+  });
+}
+
+$("#generate").onclick = async () => {
+  const btn = $("#generate");
+  const provider = $("#provider").value;
+  const payload = {
+    brand: $("#brand").value,
+    provider,
+    model: $("#model") ? $("#model").value : "claude-opus-5",
+    api_key: $("#apiKey") ? $("#apiKey").value : "",
+    prospects: collectRows().filter((r) => r.company),
+  };
+  if (!payload.prospects.length) {
+    $("#status").textContent = "Add at least one prospect with a company name.";
+    return;
+  }
+  btn.disabled = true;
+  $("#status").textContent = provider === "anthropic"
+    ? "Researching each company and writing scripts… this can take a bit."
+    : "Generating…";
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.error) { $("#status").textContent = "Error: " + data.error; return; }
+    const s = data.summary || { ok: 0, failed: 0 };
+    $("#status").innerHTML = `Done — <strong>${s.ok} succeeded, ${s.failed} failed</strong>.`;
+    $("#resultActions").style.display = "flex";
+    render(data);
+  } catch (e) {
+    $("#status").textContent = "Request failed: " + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+// start with two empty rows
+addRow(); addRow();
+</script>
+</body>
+</html>

@@ -43,6 +43,21 @@ python video_prospector.py prospects.csv --provider anthropic --brand "Lineage S
 
 Open `output/gallery.html` in a browser to see the thumbnails and scripts.
 
+## Web UI (no command line)
+
+Prefer clicking to typing? Run the built-in web app and use it from a browser —
+add prospects in a form, pick a provider, hit **Generate**, and get the gallery
+plus a one-click **Download all (.zip)** of every script, thumbnail, and
+teleprompter.
+
+```bash
+python app.py           # then open http://localhost:8000
+```
+
+It's standard-library only (no extra dependencies). In the UI, mock mode runs
+instantly; for real signals choose **Anthropic** and paste your Claude API key —
+it's used only for that request and never stored or logged.
+
 ## Example run
 
 ```text

@@ -163,13 +163,16 @@ def generate_mock(prospect):
     }
 
 
-def generate_anthropic(prospect, model):
+def generate_anthropic(prospect, model, api_key=None):
     """Use Claude + the web_search tool to find one real, cited buying signal
     and write the script around it. Returns the same dict shape as generate_mock.
+
+    `api_key` overrides the ANTHROPIC_API_KEY env var (used by the web UI, which
+    accepts a key per request); when None, the SDK resolves credentials normally.
     """
     import anthropic  # lazy import so mock mode needs no anthropic install
 
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
 
     system = (
         "You are an expert SDR and short-form video scriptwriter. You research a "
@@ -249,9 +252,9 @@ def _extract_json(text):
 PROVIDERS = {"mock": generate_mock}
 
 
-def generate(prospect, provider, model):
+def generate(prospect, provider, model, api_key=None):
     if provider == "anthropic":
-        return generate_anthropic(prospect, model)
+        return generate_anthropic(prospect, model, api_key)
     return generate_mock(prospect)
 
 
@@ -358,9 +361,9 @@ def render_thumbnail(asset, brand, out_path):
 # ---------------------------------------------------------------------------
 
 
-def process_prospect(prospect, provider, model, brand, out_dir):
+def process_prospect(prospect, provider, model, brand, out_dir, api_key=None):
     """Generate all assets for one prospect and return an Asset."""
-    result = generate(prospect, provider, model)
+    result = generate(prospect, provider, model, api_key)
     asset = Asset(
         prospect=prospect,
         signal=result["signal"],
