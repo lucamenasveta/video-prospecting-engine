@@ -1,6 +1,6 @@
 # Video Prospecting Engine
 
-[![CI](https://github.com/<your-username>/video-prospecting-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/<your-username>/video-prospecting-engine/actions/workflows/ci.yml)
+[![CI](https://github.com/lucamenasveta/video-prospecting-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/lucamenasveta/video-prospecting-engine/actions/workflows/ci.yml)
 
 Turn a raw prospect CSV into **ready-to-record personalized video prospecting assets**.
 
