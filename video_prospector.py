@@ -63,6 +63,7 @@ class Asset:
     subject: str = ""
     stages: dict = field(default_factory=dict)  # hook / bridge / value / cta
     thumbnail_path: str = ""
+    teleprompter_path: str = ""
     status: str = "ok"
 
 
@@ -367,11 +368,20 @@ def process_prospect(prospect, provider, model, brand, out_dir):
         stages=result["stages"],
     )
 
+    slug = slugify(prospect.company)
+
     thumb_dir = out_dir / "thumbnails"
     thumb_dir.mkdir(parents=True, exist_ok=True)
-    thumb_path = thumb_dir / f"{slugify(prospect.company)}.png"
+    thumb_path = thumb_dir / f"{slug}.png"
     render_thumbnail(asset, brand, thumb_path)
     asset.thumbnail_path = str(thumb_path.relative_to(out_dir))
+
+    # Clean teleprompter file: just the words the presenter reads aloud.
+    tele_dir = out_dir / "teleprompters"
+    tele_dir.mkdir(parents=True, exist_ok=True)
+    tele_path = tele_dir / f"{slug}.txt"
+    tele_path.write_text(spoken_script(asset) + "\n", encoding="utf-8")
+    asset.teleprompter_path = str(tele_path.relative_to(out_dir))
 
     return asset
 
@@ -407,7 +417,8 @@ def write_scripts_md(assets, path):
 def write_results_csv(assets, path):
     fields = [
         "first_name", "company", "role", "industry",
-        "subject", "signal", "signal_source", "thumbnail", "status",
+        "subject", "signal", "signal_source",
+        "thumbnail", "teleprompter", "status",
     ]
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fields)
@@ -422,6 +433,7 @@ def write_results_csv(assets, path):
                 "signal": a.signal,
                 "signal_source": a.signal_source,
                 "thumbnail": a.thumbnail_path,
+                "teleprompter": a.teleprompter_path,
                 "status": a.status,
             })
 

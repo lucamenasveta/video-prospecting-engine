@@ -65,7 +65,8 @@ output/
 ├── scripts.md        one section per prospect (signal, subject, script)
 ├── results.csv       one row per prospect (machine-readable)
 ├── gallery.html      thumbnails + scripts in a grid
-└── thumbnails/*.png  branded 1280×720 images
+├── thumbnails/*.png  branded 1280×720 images
+└── teleprompters/*.txt  clean spoken script per prospect, ready to read on camera
 ```
 
 `output/` and `.env` are gitignored.
