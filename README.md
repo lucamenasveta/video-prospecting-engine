@@ -117,6 +117,10 @@ output/
 
 `output/` and `.env` are gitignored.
 
+## License
+
+MIT — see [LICENSE](LICENSE).
+
 ## Tests
 
 ```bash
