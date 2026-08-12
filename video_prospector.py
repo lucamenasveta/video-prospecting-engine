@@ -518,13 +518,14 @@ def build_parser():
     parser.add_argument("--output-dir", default="output", help="where to write outputs")
     parser.add_argument("--limit", type=int, default=0,
                         help="only process the first N prospects (0 = all)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="print what would happen without calling the API or writing files")
     return parser
 
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
     out_dir = Path(args.output_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
 
     prospects = load_prospects(args.input)
     if args.limit:
@@ -532,6 +533,19 @@ def main(argv=None):
     if not prospects:
         sys.exit("No prospects found in the input CSV.")
 
+    if args.dry_run:
+        target = f"{args.provider}" + (f" ({args.model})" if args.provider == "anthropic" else "")
+        print(f"DRY RUN — no API calls, no files written. Provider: {target}")
+        print(f"Would write to {out_dir}/ and process {len(prospects)} prospect(s):\n")
+        for i, p in enumerate(prospects, 1):
+            who = p.first_name + (f", {p.role}" if p.role else "")
+            print(f"  [{i}/{len(prospects)}] {p.company} ({who})")
+            print("        → find a cited buying signal, write a ~30s script + subject,")
+            print(f"        → render thumbnails/{slugify(p.company)}.png and teleprompters/{slugify(p.company)}.txt")
+        print(f"\nWould then write scripts.md, results.csv, and gallery.html to {out_dir}/.")
+        return
+
+    out_dir.mkdir(parents=True, exist_ok=True)
     assets = []
     for i, prospect in enumerate(prospects, 1):
         print(f"[{i}/{len(prospects)}] {prospect.company} …")

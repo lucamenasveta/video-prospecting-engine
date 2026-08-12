@@ -57,6 +57,7 @@ Only `company` is required; missing `first_name` falls back to "there".
 | `--brand` | `Your Studio` | Brand shown on thumbnails and the gallery |
 | `--output-dir` | `output` | Where outputs are written |
 | `--limit N` | `0` (all) | Only process the first N prospects |
+| `--dry-run` | off | Print what would happen (no API calls, no files written) |
 
 ## Outputs
 
