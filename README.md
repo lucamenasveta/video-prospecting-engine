@@ -50,6 +50,8 @@ add prospects in a form, pick a provider, hit **Generate**, and get the gallery
 plus a one-click **Download all (.zip)** of every script, thumbnail, and
 teleprompter.
 
+![The web UI: add prospects, generate, and get a gallery of assets](docs/webui.gif)
+
 ```bash
 python app.py           # then open http://localhost:8000
 ```
