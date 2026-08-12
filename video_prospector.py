@@ -65,6 +65,7 @@ class Asset:
     thumbnail_path: str = ""
     teleprompter_path: str = ""
     status: str = "ok"
+    error: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -418,7 +419,7 @@ def write_results_csv(assets, path):
     fields = [
         "first_name", "company", "role", "industry",
         "subject", "signal", "signal_source",
-        "thumbnail", "teleprompter", "status",
+        "thumbnail", "teleprompter", "status", "error",
     ]
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fields)
@@ -435,6 +436,7 @@ def write_results_csv(assets, path):
                 "thumbnail": a.thumbnail_path,
                 "teleprompter": a.teleprompter_path,
                 "status": a.status,
+                "error": a.error,
             })
 
 
@@ -546,16 +548,24 @@ def main(argv=None):
         return
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    assets = []
+    all_assets, succeeded = [], []
     for i, prospect in enumerate(prospects, 1):
         print(f"[{i}/{len(prospects)}] {prospect.company} …")
-        assets.append(process_prospect(prospect, args.provider, args.model, args.brand, out_dir))
+        try:
+            asset = process_prospect(prospect, args.provider, args.model, args.brand, out_dir)
+            succeeded.append(asset)
+            all_assets.append(asset)
+        except Exception as e:  # keep going; one bad prospect shouldn't sink the run
+            print(f"    ! failed: {e}", file=sys.stderr)
+            all_assets.append(Asset(prospect=prospect, status="failed", error=str(e)))
 
-    write_scripts_md(assets, out_dir / "scripts.md")
-    write_results_csv(assets, out_dir / "results.csv")
-    write_gallery_html(assets, args.brand, out_dir / "gallery.html", out_dir)
+    # Full scripts/gallery need real assets; results.csv logs failures too.
+    write_scripts_md(succeeded, out_dir / "scripts.md")
+    write_results_csv(all_assets, out_dir / "results.csv")
+    write_gallery_html(succeeded, args.brand, out_dir / "gallery.html", out_dir)
 
-    print(f"\nDone. Wrote {len(assets)} assets to {out_dir}/")
+    n_ok, n_fail = len(succeeded), len(all_assets) - len(succeeded)
+    print(f"\nDone — {n_ok} succeeded, {n_fail} failed. Outputs in {out_dir}/")
     print(f"  - {out_dir}/scripts.md")
     print(f"  - {out_dir}/results.csv")
     print(f"  - {out_dir}/gallery.html")
