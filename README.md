@@ -13,6 +13,10 @@ Outputs a `scripts.md`, a `results.csv`, and a browsable `gallery.html`.
 
 Built by a video producer moving into an SDR/BDR role — it's the proof-of-work: research → message → asset, at volume, the way a rep actually preps outreach.
 
+![Gallery of generated video prospecting thumbnails](docs/gallery.png)
+
+*`gallery.html` — one branded, ready-to-record asset per prospect (mock provider shown).*
+
 ## Providers
 
 | Provider | What it does | Needs |
@@ -36,6 +40,47 @@ python video_prospector.py prospects.csv --provider anthropic --brand "Lineage S
 ```
 
 Open `output/gallery.html` in a browser to see the thumbnails and scripts.
+
+## Example run
+
+```text
+$ python video_prospector.py prospects.csv --brand "Lineage Studio"
+[1/5] Ramp …
+[2/5] Notion …
+[3/5] Deel …
+[4/5] Retool …
+[5/5] Webflow …
+
+Done — 5 succeeded, 0 failed. Outputs in output/
+  - output/scripts.md
+  - output/results.csv
+  - output/gallery.html
+```
+
+One generated asset (from `output/scripts.md`):
+
+```markdown
+## Ramp — Priya
+*VP Sales*
+
+**Buying signal:** Ramp is expanding into new markets after a strong quarter.
+**Email subject:** quick idea for Ramp (made you a 30-sec video)
+
+**Script (~30s):**
+- **Hook:** Hey Priya — saw that Ramp is expanding into new markets after a strong quarter.
+- **Bridge:** When teams at companies like Ramp scale outbound, the first thing that breaks is personalization at volume.
+- **Value:** That's exactly what I fix — I build short, personalized prospecting videos your reps can send to book more first meetings. One rep I worked with doubled reply rates in three weeks.
+- **CTA:** Worth a quick look? I made this whole video for Ramp in under two minutes — happy to show you how.
+```
+
+The matching `output/teleprompters/ramp.txt` holds just those four beats as one
+clean paragraph — ready to read straight off camera.
+
+Preview the plan first, without spending any tokens:
+
+```bash
+python video_prospector.py prospects.csv --provider anthropic --dry-run
+```
 
 ## Input format
 
