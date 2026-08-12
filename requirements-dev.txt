@@ -1,0 +1,3 @@
+# Dev/test only — the tool itself needs only requirements.txt (anthropic, pillow).
+-r requirements.txt
+pytest>=8.0

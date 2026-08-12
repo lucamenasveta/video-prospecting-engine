@@ -71,3 +71,14 @@ output/
 ```
 
 `output/` and `.env` are gitignored.
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+Covers the CSV loader (parsing, header/whitespace normalization, skipping rows
+without a company) and the offline mock provider (output shape, determinism,
+and that the placeholder signal is never presented as a real citation).
